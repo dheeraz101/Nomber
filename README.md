@@ -11,7 +11,7 @@ No streak pressure. No gamification noise. Just time, discipline, and scale.
 
 ## ✨ Features
 
-- 🧮 **One-number core** — increments only once per calendar day
+- 🧮 **One-number core** - increments only once per calendar day
 - 🔒 **Anti-cheat protection**
   - Detects system clock rollback
   - Enforces real-day progression
