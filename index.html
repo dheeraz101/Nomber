@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOMBER</title>
+  <link rel="icon" href="icons/favicon.ico" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta author="Dheeraz V." />
+  <meta name="description" content="A simple tap counter app built with PWA technologies." />
+  <meta name="keywords" content="tap counter, pwa, progressive web app, nomber, clicker, counter app" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="bg-white text-black">
+
+  <!-- HEADER -->
+  <header class="fixed top-0 w-full flex justify-between items-center px-5 py-4 z-50">
+    <!-- Brand -->
+    <a
+      href="https://github.com/dheeraz101"
+      target="_blank"
+      class="text-xs tracking-widest opacity-60 hover:opacity-100 transition"
+    >
+      NOMBER
+    </a>
+
+    <!-- Support (icon only) -->
+    <a
+      href="https://www.buymeacoffee.com/dheeraz"
+      target="_blank"
+      aria-label="Support Nomber"
+      class="text-lg opacity-50 hover:opacity-100 transition"
+    >
+      ☕︎
+    </a>
+  </header>
+
+  <!-- MAIN -->
+  <main
+    id="tapArea"
+    class="h-screen flex flex-col items-center justify-center select-none"
+  >
+    <div id="count" class="hero-number">0</div>
+    <div id="meta" class="hero-meta"></div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer
+    class="fixed bottom-0 w-full flex justify-center items-center gap-3 text-xs py-4 opacity-60"
+  >
+    <a href="https://dheeraz.netlify.app" target="_blank" class="hover:underline">
+      Made with ❤️ by @dheeraz
+    </a>
+
+    <span>•</span>
+    <button id="themeBtn">theme</button>
+
+    <span>•</span>
+    <button id="shareBtn">share</button>
+
+    <span>•</span>
+    <button id="installBtn" class="hidden">install</button>
+  </footer>
+
+  <script src="app.js"></script>  
+</html>
