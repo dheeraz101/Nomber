@@ -8,8 +8,11 @@ self.addEventListener('install', e => {
         './index.html',
         './styles.css',
         './app.js',
-        './icons/icon-192.png',
-        './icons/icon-512.png'
+        './icons/android-chrome-192x192.png',
+        './icons/android-chrome-512x512.png',
+        './icons/favicon.ico',
+        './manifest.json',
+        './service-worker.js'
       ])
     )
   );
