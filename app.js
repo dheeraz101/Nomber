@@ -178,6 +178,16 @@ window.addEventListener('beforeinstallprompt', e => {
   if (!isLikelyInstalledAndRunningStandalone) {
     installBtn.classList.remove('hidden');
     installBtn.textContent = 'install';
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+
+      if (outcome === 'accepted') {
+        deferredPrompt = null;
+      }
+    };
   }
 });
 
