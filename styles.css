@@ -6,23 +6,29 @@ html, body {
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  background: #ffffff;
-  color: #000000;
 }
 
-body.dark {
-  background: #000000;
-  color: #ffffff;
+canvas {
+  position: fixed;
+  inset: 0;
 }
 
-/* MAIN NUMBER */
-.hero-number {
-  font-size: clamp(6rem, 32vw, 22rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  text-align: center;
+:root[data-theme="dark"]{
+  --bg:#000;
+  --text:#fff;
+}
+
+:root[data-theme="light"]{
+  --bg:#fff;
+  --text:#000;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  transition:background .3s,color .3s;
 }
 
 /* SUB TEXT (minimal) */
@@ -31,4 +37,54 @@ body.dark {
   font-size: 0.85rem;
   opacity: 0.6;
   text-align: center;
+}
+
+#fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  transform: scale(0);
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(6);
+    opacity: 0;
+  }
+}
+
+.hero-number {
+  font-size: clamp(6rem, 32vw, 22rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  user-select: none;
+  transition: transform 0.15s;
+}
+
+.hero-number.tap {
+  transform: scale(1.08);
+}
+
+.hero-number.countdown {
+  color: #ff3b30;
+}
+
+button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+button:active {
+  transform: scale(0.92);
+}
+
+.button-press {
+  transform: scale(0.9);
+  box-shadow: 0 0 20px rgba(0,0,0,0.25);
 }

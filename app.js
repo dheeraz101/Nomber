@@ -1,234 +1,400 @@
-/* ======================
-   CONSTANTS
-====================== */
-const MAX_DAYS = 1_000_000;
-const STORAGE_KEY = 'nomber-data';
+/* =========================
+CONFIG
+========================= */
 
-/* ======================
-   STATE
-====================== */
-let state = {
-  count: 0,
-  lastDay: null,
-  lastTime: null,
-  theme: 'light'
-};
+const MAX_COUNT = 10000
+const STORAGE_KEY = "nomber-counter"
+const THEME_KEY = "nomber-theme"
 
-const saved = localStorage.getItem(STORAGE_KEY);
-if (saved) state = JSON.parse(saved);
+let theme = localStorage.getItem(THEME_KEY) || "dark"
+document.documentElement.setAttribute("data-theme", theme)
 
-/* ======================
-   ELEMENTS
-====================== */
-const countEl = document.getElementById('count');
-const tapArea = document.getElementById('tapArea');
-const themeBtn = document.getElementById('themeBtn');
-const shareBtn = document.getElementById('shareBtn');
-const installBtn = document.getElementById('installBtn');
+/* =========================
+STATE
+========================= */
 
-/* ======================
-   HELPERS
-====================== */
-const todayKey = () => new Date().toISOString().slice(0, 10);
+let state = { count: 0 }
+
+const saved = localStorage.getItem(STORAGE_KEY)
+if (saved) state = JSON.parse(saved)
+
+let countdownRunning = false
+let countdownStart = 0
+let countdownDuration = 0
+
+let holdInterval = null
+let lastTapTime = 0
+
+function getThemeColor(){
+  return getComputedStyle(document.body).getPropertyValue("--text").trim()
+}
+
+/* =========================
+ELEMENTS
+========================= */
+
+const countEl = document.getElementById("count")
+const tapArea = document.getElementById("tapArea")
+const startBtn = document.getElementById("startBtn")
+const resetBtn = document.getElementById("resetBtn")
+const screenBtn = document.getElementById("screenBtn")
+const themeBtn = document.getElementById("themeBtn")
+
+const canvas = document.getElementById("fx")
+const ctx = canvas.getContext("2d")
+
+/* =========================
+CANVAS
+========================= */
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+}
+
+resizeCanvas()
+window.addEventListener("resize", resizeCanvas)
+
+/* =========================
+SAVE
+========================= */
 
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
-function updateUI() {
-  countEl.textContent = state.count.toLocaleString();
-}
+screenBtn.onclick = (e) => {
 
-/* ======================
-   ANTI-CHEAT (SOFT)
-====================== */
-function isClockRolledBack() {
-  const now = Date.now();
-  if (state.lastTime && now < state.lastTime - 60_000) {
-    alert('System time manipulation detected.');
-    return true;
-  }
-  state.lastTime = now;
-  return false;
-}
+  ripple(e.clientX, e.clientY)
 
-/* ======================
-   CORE TAP
-====================== */
-tapArea.onclick = () => {
-  if (state.count >= MAX_DAYS) return;
-  if (isClockRolledBack()) return;
+  if(navigator.vibrate) navigator.vibrate(15)
 
-  const today = todayKey();
-  if (state.lastDay === today) {
-    alert('Already counted today.');
-    return;
+  screenBtn.classList.add("button-press")
+
+  setTimeout(()=>{
+    screenBtn.classList.remove("button-press")
+  },150)
+
+  if(!document.fullscreenElement){
+
+    document.documentElement.requestFullscreen().catch(err=>{
+      console.log(err)
+    })
+
+  }else{
+
+    document.exitFullscreen()
+
   }
 
-  state.count += 1;
-  state.lastDay = today;
+}
 
-  save();
-  updateUI();
+document.addEventListener("fullscreenchange", () => {
 
-  if ([5,10,15,20,25,30,50,100,150,200,500,1000].includes(state.count)) {
-    fireConfetti();
+  if(!document.fullscreenElement){
+    screenBtn.classList.remove("active")
+  }else{
+    screenBtn.classList.add("active")
   }
-};
 
-/* ======================
-   CONFETTI
-====================== */
-function fireConfetti() {
-  import('https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js')
-    .then(({ default: confetti }) => {
-      confetti({ particleCount: 150, spread: 90 });
-    });
+})
+
+themeBtn.onclick = (e) => {
+
+  ripple(e.clientX, e.clientY)
+
+  vibrate(10)
+
+  theme = theme === "dark" ? "light" : "dark"
+
+  document.documentElement.setAttribute("data-theme", theme)
+
+  localStorage.setItem(THEME_KEY, theme)
+
+  themeBtn.classList.add("button-press")
+
+  setTimeout(()=>{
+    themeBtn.classList.remove("button-press")
+  },150)
+
 }
 
-/* ======================
-   THEME (FIXED)
-====================== */
-function applyTheme() {
-  document.body.classList.toggle('dark', state.theme === 'dark');
+/* =========================
+APPLE STYLE NUMBER ROLL
+========================= */
+
+let displayValue = state.count
+
+function renderNumber() {
+  displayValue += (state.count - displayValue) * 0.18
+  countEl.textContent = Math.round(displayValue).toLocaleString()
 }
 
-applyTheme();
+/* =========================
+PARTICLES
+========================= */
 
-themeBtn.onclick = () => {
-  state.theme = state.theme === 'dark' ? 'light' : 'dark';
-  save();
-  applyTheme();
-};
+let particles = []
 
-/* ======================
-   SHARE AS IMAGE (FIXED)
-====================== */
-shareBtn.onclick = async () => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080;
-  canvas.height = 1350;
-  const ctx = canvas.getContext('2d');
+function spawnParticles(x, y, amount = 20) {
 
-  const isDark = state.theme === 'dark';
+  for (let i = 0; i < amount; i++) {
 
-  ctx.fillStyle = isDark ? '#000' : '#fff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    particles.push({
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 10,
+      vy: (Math.random() - 0.5) * 10,
+      life: 1,
+      size: Math.random() * 3 + 2
+    })
 
-  ctx.fillStyle = isDark ? '#fff' : '#000';
-  ctx.textAlign = 'center';
-
-  ctx.font = '800 200px -apple-system';
-  ctx.fillText(state.count.toLocaleString(), 540, 620);
-
-  ctx.font = '500 48px -apple-system';
-  ctx.globalAlpha = 0.7;
-
-  const now = new Date();
-  const date = now.toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
-  const time = now.toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit'
-  });
-
-  ctx.fillText(
-    `Nomber • ${date} • ${time}`,
-    540,
-    720
-  );
-
-  ctx.globalAlpha = 1;
-
-  canvas.toBlob(blob => {
-    const file = new File([blob], 'nomber.png', { type: 'image/png' });
-    navigator.share?.({
-      files: [file],
-      title: 'Nomber'
-    });
-  });
-};
-
-/* ======================
-   PWA INSTALL / OPEN
-====================== */
-// Better PWA mode detection
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches ||
-  window.matchMedia('(display-mode: fullscreen)').matches ||
-  window.matchMedia('(display-mode: minimal-ui)').matches ||
-  // iOS Safari fallback (older but still sometimes useful)
-  ('standalone' in navigator && navigator.standalone === true);
-
-// This is the most reliable combination for most cases in 2025–2026
-const isLikelyInstalledAndRunningStandalone = isStandalone();
-
-// We assume: if beforeinstallprompt fired → install is still possible (not yet installed)
-let installPromptAvailable = false;
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installPromptAvailable = true;
-
-  // Only show "install" if we're clearly **not** in standalone mode
-  if (!isLikelyInstalledAndRunningStandalone) {
-    installBtn.classList.remove('hidden');
-    installBtn.textContent = 'install';
-    installBtn.onclick = async () => {
-      if (!deferredPrompt) return;
-
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === 'accepted') {
-        deferredPrompt = null;
-      }
-    };
   }
-});
 
-window.addEventListener('appinstalled', () => {
-  // Fired when user actually installs (good moment to update UI)
-  deferredPrompt = null;
-  installPromptAvailable = false;
+}
 
-  // If still in browser → now show "open app"
-  if (!isLikelyInstalledAndRunningStandalone) {
-    showOpenApp();
+/* screen wide ambient particles */
+
+function spawnScreenParticles(amount = 30) {
+
+  for (let i = 0; i < amount; i++) {
+
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3,
+      life: 1,
+      size: Math.random() * 2 + 1
+    })
+
   }
-});
 
-// Initial check on load
-if (isLikelyInstalledAndRunningStandalone) {
-  // Running as PWA → hide everything or show "open app" only if you want
-  installBtn.classList.add('hidden');
-} else if (!installPromptAvailable) {
-  // In browser, prompt did NOT fire → very likely already installed
-  showOpenApp();
-} else {
-  // Prompt is coming or already saved → show install (default case)
-  // (handled by the event listener above)
 }
 
-// Your existing showOpenApp function is fine:
-function showOpenApp() {
-  installBtn.classList.remove('hidden');
-  installBtn.textContent = 'open app';
-  installBtn.style.opacity = '0.6';
-  installBtn.onclick = () => {
-    // Optional: try to open via scheme if you have one, otherwise just reload
-    // or do nothing special — reload often works fine to trigger standalone
-    window.location.reload();
-    // Alternative: window.open(window.location.href, '_blank'); but reload is usually enough
-  };
+
+function drawParticles() {
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  ctx.fillStyle = getThemeColor()
+
+  particles.forEach(p => {
+
+    /* physics */
+
+    p.vy += 0.05
+    p.vx *= 0.99
+    p.vy *= 0.99
+
+    p.x += p.vx
+    p.y += p.vy
+    p.life -= 0.02
+
+    ctx.globalAlpha = p.life
+
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+    ctx.fill()
+
+  })
+
+  ctx.globalAlpha = 1
+
+  particles = particles.filter(p => p.life > 0)
+
 }
 
-/* ======================
-   INIT
-====================== */
-updateUI();
-navigator.serviceWorker?.register('/service-worker.js');
+/* =========================
+RIPPLE
+========================= */
+
+function ripple(x, y) {
+
+  const rect = tapArea.getBoundingClientRect()
+
+  const r = document.createElement("div")
+  r.className = "ripple"
+
+  r.style.left = x - rect.left + "px"
+  r.style.top = y - rect.top + "px"
+
+  tapArea.appendChild(r)
+
+  setTimeout(() => r.remove(), 600)
+
+}
+
+/* =========================
+VIBRATION
+========================= */
+
+function vibrate(ms = 10) {
+  if (navigator.vibrate) navigator.vibrate(ms)
+}
+
+/* =========================
+TAP SPEED CALCULATION
+========================= */
+
+function getTapMultiplier() {
+
+  const now = Date.now()
+  const delta = now - lastTapTime
+  lastTapTime = now
+
+  if (delta < 80) return 2.5
+  if (delta < 140) return 1.8
+  if (delta < 220) return 1.3
+
+  return 1
+
+}
+
+/* =========================
+TAP
+========================= */
+
+function increment(x, y) {
+
+  if (countdownRunning) return
+  if (state.count >= MAX_COUNT) return
+
+  state.count++
+
+  const multiplier = getTapMultiplier()
+
+  vibrate(10)
+
+  ripple(x, y)
+
+  spawnParticles(x, y, Math.floor(18 * multiplier))
+  spawnScreenParticles(Math.floor(6 * multiplier))
+
+  countEl.classList.add("tap")
+
+  setTimeout(() => {
+    countEl.classList.remove("tap")
+  }, 100)
+
+  save()
+
+}
+
+/* =========================
+HOLD TAP
+========================= */
+
+tapArea.addEventListener("pointerdown", (e) => {
+
+  increment(e.clientX, e.clientY)
+
+  holdInterval = setInterval(() => {
+    increment(e.clientX, e.clientY)
+  }, 80)
+
+})
+
+window.addEventListener("pointerup", () => {
+  clearInterval(holdInterval)
+})
+
+/* =========================
+COUNTDOWN (REAL TIME)
+========================= */
+
+startBtn.onclick = (e) => {
+
+  startBtn.classList.add("button-press")
+
+  setTimeout(() => {
+    startBtn.classList.remove("button-press")
+  }, 150)
+
+  vibrate(20)
+
+  if (countdownRunning) return
+  if (state.count <= 0) return
+
+  ripple(e.clientX, e.clientY)
+
+  countdownRunning = true
+
+  countdownDuration = state.count * 1000
+  countdownStart = Date.now()
+
+  countEl.classList.add("countdown")
+
+}
+
+function updateCountdown() {
+
+  if (!countdownRunning) return
+
+  const elapsed = Date.now() - countdownStart
+  const remaining = countdownDuration - elapsed
+
+  if (remaining <= 0) {
+
+    state.count = 0
+    displayValue = 0
+    countdownRunning = false
+
+    countEl.classList.remove("countdown")
+
+    spawnScreenParticles(120)
+
+    return
+
+  }
+
+  state.count = Math.ceil(remaining / 1000)
+
+}
+
+/* =========================
+RESET
+========================= */
+
+resetBtn.onclick = (e) => {
+
+  countdownRunning = false
+  state.count = 0
+  displayValue = 0
+
+  countEl.classList.remove("countdown")
+
+  ripple(e.clientX, e.clientY)
+
+  vibrate(15)
+
+  spawnScreenParticles(40)
+
+  save()
+
+}
+
+/* =========================
+MAIN LOOP (60FPS)
+========================= */
+
+function loop() {
+
+  updateCountdown()
+
+  renderNumber()
+
+  drawParticles()
+
+  /* ambient particles */
+
+  if (particles.length < 40 && Math.random() < 0.04) {
+    spawnScreenParticles(2)
+  }
+
+  requestAnimationFrame(loop)
+
+}
+
+loop()
+
