@@ -1,65 +1,117 @@
-# Nomber (Beta)
+# Nomber
 
-**Nomber** is a minimalist daily progression app built around a single idea:
+**Nomber** is a minimal tap counter and countdown timer built as a **Progressive Web App (PWA)**.
 
-> One Second. One number. No shortcuts. 
+> One tap. One number. No distractions.
 
-You can increase the number **from 1 to 10000 seconds**.  
-No streak pressure. No gamification noise. Just time, discipline, and scale.
+Designed to be simple, fast, and focused — the number is the only thing that matters.
 
 ---
 
 ## ✨ Features
 
-- 🎨 **Theme toggle**
-  - Light / Dark
-- 🖼️ **Share as image**
-  - Generates a branded image with:
-    - Current number
-    - Date & time
-    - Nomber branding
-- 📱 **Progressive Web App (PWA)**
-  - Installable on desktop & mobile
-  - Offline support via Service Worker
-- 🧠 **Designed for clarity**
-  - Strong visual hierarchy
-  - Apple-inspired typography & spacing
-  - Scales cleanly from small to extreme numbers
+* 🔢 **Tap Counter**
+
+  * Tap anywhere to increase the number
+  * Hold to auto-increment
+
+* ⏳ **Countdown Mode**
+
+  * Convert the current number into a real-time countdown timer
+
+* 🎨 **Theme Toggle**
+
+  * Light / Dark mode support
+
+* 🖥️ **Fullscreen Mode**
+
+  * Run Nomber distraction-free
+
+* 🔗 **Native Share**
+
+  * Share the app using the device's native share menu
+
+* 📱 **Progressive Web App (PWA)**
+
+  * Installable on desktop and mobile
+  * Works offline
 
 ---
 
-## 🧠 Philosophy
+## 🧠 Design Philosophy
 
-Nomber is intentionally restrictive.
+Nomber follows a strict minimal design approach.
 
-- No streak anxiety
-- No infinite taps
-- No artificial dopamine loops
+* No accounts
+* No tracking
+* No ads
+* No unnecessary UI
 
-Progress equals **time survived with consistency**.
+The focus stays on **interaction and clarity**.
 
 ---
 
 ## 🚀 Live Demo
 
-👉 _https://nomber.netlify.app_
+👉 https://nomber.netlify.app
 
 ---
 
 ## 🛠 Tech Stack
 
-- HTML, CSS, Vanilla JavaScript
-- Service Worker (offline support)
-- Web Share API
-- Canvas (image generation)
-- LocalStorage (state persistence)
+* HTML
+* CSS
+* Vanilla JavaScript
+* LocalStorage (state persistence)
+* Web Share API
+* Progressive Web App (Service Worker)
 
-No backend. No tracking. No accounts.
+No backend.
+No databases.
+No tracking.
 
 ---
 
-## 📦 Installation (Local)
+## 📦 Run Locally
+
+Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/nomber.git
-cd nomber
+git clone https://github.com/dheeraz101/Nomber.git
+cd Nomber
+```
+
+Open `index.html` in your browser.
+
+For a better local PWA experience you can run a simple server:
+
+```bash
+npx serve
+```
+
+---
+
+## 📁 Project Structure
+
+```
+Nomber
+│
+├── index.html
+├── styles.css
+├── app.js
+├── manifest.json
+├── service-worker.js
+└── icons/
+```
+
+---
+
+## 👨‍💻 Author
+
+**Dheeraj V**
+
+Portfolio
+https://dheeraz.netlify.app
+
+GitHub
+https://github.com/dheeraz101

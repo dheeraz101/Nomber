@@ -3,7 +3,7 @@
   "name": "Nomber",
   "short_name": "Nomber",
   "description": "A minimalist daily progression tracker. One number. One day at a time.",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

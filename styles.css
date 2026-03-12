@@ -65,11 +65,16 @@ body{
   font-weight: 800;
   letter-spacing: -0.05em;
   user-select: none;
-  transition: transform 0.15s;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.15s ease;
+}
+
+#tapArea {
+  touch-action: none;
 }
 
 .hero-number.tap {
-  transform: scale(1.08);
+  transform: scale(1.12);
 }
 
 .hero-number.countdown {

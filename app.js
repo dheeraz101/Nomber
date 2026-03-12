@@ -25,6 +25,9 @@ let countdownDuration = 0
 let holdInterval = null
 let lastTapTime = 0
 
+let tapForce = 0
+let tapVelocity = 0
+
 function getThemeColor(){
   return getComputedStyle(document.body).getPropertyValue("--text").trim()
 }
@@ -38,6 +41,7 @@ const tapArea = document.getElementById("tapArea")
 const startBtn = document.getElementById("startBtn")
 const resetBtn = document.getElementById("resetBtn")
 const screenBtn = document.getElementById("screenBtn")
+const shareBtn = document.getElementById("shareBtn")
 const themeBtn = document.getElementById("themeBtn")
 
 const canvas = document.getElementById("fx")
@@ -125,9 +129,35 @@ APPLE STYLE NUMBER ROLL
 
 let displayValue = state.count
 
+let rollOffset = 0
+
 function renderNumber() {
+
   displayValue += (state.count - displayValue) * 0.18
-  countEl.textContent = Math.round(displayValue).toLocaleString()
+  const rounded = Math.round(displayValue)
+
+  if (countEl.dataset.last != rounded) {
+
+    rollOffset = -4
+
+    setTimeout(()=>{
+      countEl.textContent = rounded.toLocaleString()
+      rollOffset = 0
+    },40)
+
+    countEl.dataset.last = rounded
+  }
+
+  /* physics */
+
+  tapVelocity += tapForce
+  tapVelocity *= 0.75
+  tapForce *= 0.65
+
+  const scale = 1 - Math.abs(tapVelocity) * 0.04
+
+  countEl.style.transform = `translateY(${rollOffset}px) scale(${scale})`
+
 }
 
 /* =========================
@@ -266,12 +296,18 @@ function increment(x, y) {
 
   vibrate(10)
 
-  ripple(x, y)
-
-  spawnParticles(x, y, Math.floor(18 * multiplier))
-  spawnScreenParticles(Math.floor(6 * multiplier))
+  const rect = tapArea.getBoundingClientRect()
+  ripple(rect.width / 2, rect.height / 2)
 
   countEl.classList.add("tap")
+
+  countEl.style.transform = "scale(0.96)"
+
+  setTimeout(()=>{
+    countEl.style.transform = "scale(1)"
+  },80)
+
+  tapForce += 0.4
 
   setTimeout(() => {
     countEl.classList.remove("tap")
@@ -291,11 +327,23 @@ tapArea.addEventListener("pointerdown", (e) => {
 
   holdInterval = setInterval(() => {
     increment(e.clientX, e.clientY)
-  }, 80)
+  }, 120)
 
 })
 
 window.addEventListener("pointerup", () => {
+  clearInterval(holdInterval)
+})
+
+window.addEventListener("pointercancel", () => {
+  clearInterval(holdInterval)
+})
+
+window.addEventListener("pointerleave", () => {
+  clearInterval(holdInterval)
+})
+
+window.addEventListener("blur", () => {
   clearInterval(holdInterval)
 })
 
@@ -342,8 +390,6 @@ function updateCountdown() {
 
     countEl.classList.remove("countdown")
 
-    spawnScreenParticles(120)
-
     return
 
   }
@@ -351,6 +397,8 @@ function updateCountdown() {
   state.count = Math.ceil(remaining / 1000)
 
 }
+
+ctx.globalCompositeOperation = "lighter"
 
 /* =========================
 RESET
@@ -368,7 +416,6 @@ resetBtn.onclick = (e) => {
 
   vibrate(15)
 
-  spawnScreenParticles(40)
 
   save()
 
@@ -388,13 +435,94 @@ function loop() {
 
   /* ambient particles */
 
-  if (particles.length < 40 && Math.random() < 0.04) {
-    spawnScreenParticles(2)
-  }
-
   requestAnimationFrame(loop)
 
 }
 
 loop()
 
+/* =========================
+SHARE
+========================= */
+
+shareBtn.onclick = async (e) => {
+
+  ripple(e.clientX, e.clientY)
+
+  vibrate(10)
+
+  const shareData = {
+    title: "Nomber • Minimal Counter",
+    text: "A next generation innovative counter from 1 second to 10000 with a unique tap system and real time countdown. Check it out!",
+    url: window.location.href
+  }
+
+  if (navigator.share) {
+
+    try {
+      await navigator.share(shareData)
+    } catch (err) {
+      console.log("Share cancelled")
+    }
+
+  } else {
+
+    /* fallback for desktop */
+
+    navigator.clipboard.writeText(window.location.href)
+
+    alert("Link copied to clipboard")
+
+  }
+
+}
+
+/* =========================
+SERVICE WORKER
+========================= */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(reg => {
+        console.log("Service Worker registered", reg)
+      })
+      .catch(err => {
+        console.log("Service Worker failed", err)
+      })
+  })
+}
+
+/* =========================
+PWA INSTALL
+========================= */
+
+let deferredPrompt
+const installBtn = document.getElementById("installBtn")
+
+window.addEventListener("beforeinstallprompt", (e) => {
+
+  e.preventDefault()
+
+  deferredPrompt = e
+
+  installBtn.classList.remove("hidden")
+
+})
+
+installBtn.onclick = async () => {
+
+  if(!deferredPrompt) return
+
+  deferredPrompt.prompt()
+
+  const choice = await deferredPrompt.userChoice
+
+  if(choice.outcome === "accepted"){
+    console.log("PWA installed")
+  }
+
+  deferredPrompt = null
+  installBtn.classList.add("hidden")
+
+}
