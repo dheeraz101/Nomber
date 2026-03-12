@@ -1,26 +1,16 @@
-# Nomber
+# Nomber (Beta)
 
 **Nomber** is a minimalist daily progression app built around a single idea:
 
-> One day. One number. No shortcuts.
+> One Second. One number. No shortcuts. 
 
-You can increase the number **only once per day**.  
+You can increase the number **from 1 to 10000 seconds**.  
 No streak pressure. No gamification noise. Just time, discipline, and scale.
 
 ---
 
 ## ✨ Features
 
-- 🧮 **One-number core** - increments only once per calendar day
-- 🔒 **Anti-cheat protection**
-  - Detects system clock rollback
-  - Enforces real-day progression
-- 🧱 **Hard daily lock**
-  - Resets at midnight (local time)
-- 🎯 **End state**
-  - Stops permanently at **1,000,000**
-- 🎉 **Milestone celebrations**
-  - Confetti at key thresholds
 - 🎨 **Theme toggle**
   - Light / Dark
 - 🖼️ **Share as image**
@@ -52,7 +42,7 @@ Progress equals **time survived with consistency**.
 
 ## 🚀 Live Demo
 
-👉 _Add your deployed URL here_
+👉 _https://nomber.netlify.app_
 
 ---
 
