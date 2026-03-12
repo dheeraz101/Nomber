@@ -22,7 +22,8 @@ let countdownRunning = false
 let countdownStart = 0
 let countdownDuration = 0
 
-let holdInterval = null
+let isHolding = false
+let lastHoldTick = 0
 let lastTapTime = 0
 
 let tapForce = 0
@@ -321,31 +322,40 @@ function increment(x, y) {
 HOLD TAP
 ========================= */
 
+let holdInterval = null
+
 tapArea.addEventListener("pointerdown", (e) => {
+
+  isHolding = true
 
   increment(e.clientX, e.clientY)
 
   holdInterval = setInterval(() => {
+
+    if(!isHolding) return
+
     increment(e.clientX, e.clientY)
+
   }, 120)
 
 })
 
-window.addEventListener("pointerup", () => {
-  clearInterval(holdInterval)
-})
+function stopHold(){
 
-window.addEventListener("pointercancel", () => {
-  clearInterval(holdInterval)
-})
+  isHolding = false
 
-window.addEventListener("pointerleave", () => {
-  clearInterval(holdInterval)
-})
+  if(holdInterval){
+    clearInterval(holdInterval)
+    holdInterval = null
+  }
 
-window.addEventListener("blur", () => {
-  clearInterval(holdInterval)
-})
+}
+
+window.addEventListener("pointerup", stopHold)
+window.addEventListener("pointercancel", stopHold)
+window.addEventListener("pointerleave", stopHold)
+window.addEventListener("blur", stopHold)
+document.addEventListener("visibilitychange", stopHold)
 
 /* =========================
 COUNTDOWN (REAL TIME)
